@@ -1,13 +1,13 @@
-# Use an official OpenJDK 21 runtime as a parent image
-FROM alpine/java:22-jdk
-# Set the working directory
+# ---- Build Stage ----
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Copy the WAR file from the target directory
-COPY target/buildproject-0.0.1-SNAPSHOT.war /app/buildproject.war
-
-# Expose port 8080
+# ---- Run Stage ----
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=build /app/target/buildproject-0.0.1-SNAPSHOT.war /app/buildproject.war
 EXPOSE 8080
-
-# Run the WAR file
 ENTRYPOINT ["java", "-jar", "/app/buildproject.war"]
